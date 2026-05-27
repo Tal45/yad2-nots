@@ -44,26 +44,25 @@ else:
 areas = config.get("areas", [])
 
 
-UA_POOL = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
-]
-
 DEFAULT_HEADERS = {
-    "User-Agent": f"{random.choice(UA_POOL)}",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-    "Accept-Encoding": "gzip, deflate, br",
+    "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "Accept-Encoding": "gzip, deflate, br, zstd",
     "Accept-Language": "he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Cache-Control": "no-cache",
     "Connection": "keep-alive",
-    "Referer": "https://www.yad2.co.il/realestate/rent",
     "DNT": "1",
+    "Origin": "https://www.yad2.co.il",
+    "Pragma": "no-cache",
+    "Referer": "https://www.yad2.co.il/",
+    "Sec-Ch-Ua": '"Chromium";v="148", "Google Chrome";v="148", "Not/A)Brand";v="99"',
+    "Sec-Ch-Ua-Mobile": "?1",
+    "Sec-Ch-Ua-Platform": '"Android"',
     "Sec-Fetch-Dest": "document",
     "Sec-Fetch-Mode": "navigate",
-    "Sec-Fetch-Site": "same-origin",
+    "Sec-Fetch-Site": "none",
     "Sec-Fetch-User": "?1",
     "Upgrade-Insecure-Requests": "1",
-    "Cache-Control": "no-cache",
 }
 
 for area in areas:
@@ -72,10 +71,7 @@ for area in areas:
         print(f"Scraping {zone}", flush=True)
         sleep(random.uniform(3, 7))
 
-        headers = DEFAULT_HEADERS.copy()
-        headers["User-Agent"] = random.choice(UA_POOL)
-
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=DEFAULT_HEADERS)
         response.encoding = 'utf-8'
 
         if response.status_code != 200:
