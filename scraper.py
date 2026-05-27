@@ -78,8 +78,12 @@ for area in areas:
         response = requests.get(url, headers=headers)
         response.encoding = 'utf-8'
 
+        if response.status_code != 200:
+            print(f"Error: yad2 returned code {response.status_code}", flush=True)
+            continue
+
         soup = BeautifulSoup(response.text, 'html.parser')
-        if soup.title and 'shieldsquare' in soup.title.text.lower():
+        if soup.title and 'shieldsquare' in soup.title.text.lower() or 'אבטחת אתר' in soup.title.text:
             print(f"Bot detected for {zone}, terminating...", flush=True)
             break
 
