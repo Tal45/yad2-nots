@@ -1,0 +1,11 @@
+.venv
+__pycache__
+.git
+.github
+.idea
+.env
+listings.json
+*.pyc
+*.pyo
+*.pyd
+.db

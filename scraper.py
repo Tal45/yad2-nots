@@ -7,27 +7,31 @@ from json.decoder import JSONDecodeError
 from dotenv import load_dotenv
 from time import sleep
 from bs4 import BeautifulSoup
+from supabase import create_client, Client
 
 load_dotenv()
 TG_API = os.getenv('TG_API')
 CHAT_ID = os.getenv('CHAT_ID')
+SUPABASE_URL = os.getenv('SUPABASE_URL')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY')
 
 if not TG_API or not CHAT_ID:
     raise RuntimeError("TG_API/CHAT_ID missing in environment")
 
-LISTINGS_FILE = 'listings.json'
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise RuntimeError("SUPABASE_URL/SUPABASE_KEY missing in environment")
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
 CONFIG_FILE = 'config.json'
 
-if os.path.isfile(LISTINGS_FILE):
-    try:
-        with open(LISTINGS_FILE, 'r', encoding='utf-8') as f:
-            scraped_data = json.load(f)
-            scraped_urls = {item['url'] for item in scraped_data}
-    except JSONDecodeError:
-        scraped_data = []
-        scraped_urls = set()
-else:
-    scraped_data = []
+# Fetch existing URLs from Supabase
+try:
+    # We only need the URL to check for duplicates
+    response = supabase.table('listings').select('url').execute()
+    scraped_urls = {item['url'] for item in response.data}
+except Exception as e:
+    print(f"Error fetching from Supabase: {e}", flush=True)
     scraped_urls = set()
 
 new_listings = []
@@ -96,7 +100,7 @@ for area in areas:
 
                 href = a.get("href")
                 url = f"https://www.yad2.co.il{href}" if href.startswith("/realestate") else href
-                url = url[:url.rindex("?")]
+                url = url.split("?")[0]
                 if url in scraped_urls:
                     continue
 
@@ -123,7 +127,7 @@ for area in areas:
                 }
 
                 new_listings.append(listing)
-                scraped_data.append(listing)
+                scraped_urls.add(url)
 
             except Exception as e:
                 print(f"Error extracting listing: {e}", flush=True)
@@ -132,8 +136,12 @@ for area in areas:
         print(f"Error scraping {zone}: {e}", flush=True)
 
 
-with open(LISTINGS_FILE, 'w', encoding='utf-8') as f:
-    json.dump(scraped_data, f, indent=2, ensure_ascii=False)
+if new_listings:
+    try:
+        supabase.table('listings').insert(new_listings).execute()
+        print(f"Inserted {len(new_listings)} new listings into Supabase.", flush=True)
+    except Exception as e:
+        print(f"Error inserting into Supabase: {e}", flush=True)
 
 print(f"Scraping complete. {len(new_listings)} new listings found.", flush=True)
 
